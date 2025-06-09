@@ -1,0 +1,25 @@
+# image processing.
+pytesseract
+opencv-python
+pdf2image
+
+# pdf processing.
+pdfminer.six
+python-docx
+PyMuPDF
+PyPDF2
+
+# Embedding and Vector storage.
+# [sentence-transformers, faiss.cpu]
+chromadb
+
+# backend.
+fastapi
+uvicorn
+
+# frontend.
+streamlit 
+
+# LLM api client.
+openai
+requests
