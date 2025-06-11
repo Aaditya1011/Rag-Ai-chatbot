@@ -7,9 +7,14 @@ import uuid
 from app.services.text_extractor import extract_text
 from app.services.llm_api import get_answer_from_llm, identify_themes_in_responses
 from app.services.embeddings import load_extracted_text
-from app.services.embeddings import split_text_into_chunks
+#from app.services.embeddings import split_text_into_chunks
 from app.services.embeddings import get_embeddings_from_api
 from app.services.vector_store import store_chunks_with_embeddings
+
+from app.services.embeddings import split_text_into_chunks_with_metadata
+
+from chromadb import Client
+from chromadb.config import Settings
 
 # from fastapi.responses import JSONResponse
 
@@ -127,25 +132,27 @@ async def process_batch(doc_ids: List[str]):
         
         try:
             # load full text from file.
-            text = load_extracted_text(doc_id)
+            structured_data = load_extracted_text(doc_id)
             print("text loaded")
+
             # split the text into chunks.
-            chunks = split_text_into_chunks(text)
-            print("converting into chunks.")
+            # chunks = split_text_into_chunks(text)
+            chunks,metadata = split_text_into_chunks_with_metadata(structured_data["extracted"])
+            print("chunks loaded")
 
             if not chunks:
                 continue
 
-            print("getting embeddings.")
             # get the embeddings.
             embeddings = await get_embeddings_from_api(chunks)
-            print("embeddings recieved.")
+            print("embeddings received.")
 
             # store in chromaDB.
-            store_chunks_with_embeddings(chunks, embeddings, doc_id)
-            print("embeddings stored.")
+            # store_chunks_with_embeddings(chunks, embeddings, doc_id)
+            store_chunks_with_embeddings(chunks, embeddings, metadata)
 
             processed_docs.append(doc_id)
+            print("docs appended.")
         
         except Exception as e:
             raise HTTPException(status_code=500,detail=f"Failed to process {doc_id}: {str(e)}")
@@ -156,23 +163,26 @@ async def process_batch(doc_ids: List[str]):
     }
 
 
-@router.get("/ask")
+@router.post("/ask")
 async def ask_question(questions: List[str] = Body(...,embed=True), top_k: int = 5):
     """
     Takes a question, finds similar chunks, and returns an LLM generated answer.
     """
 
     answers = []
+    citation = []
 
     # get answer for each question.
     for question in questions:
-        ans = await get_answer_from_llm(question,top_k)
+        ans,ans_meta = await get_answer_from_llm(question,top_k)
         answers.append(ans)
-
+        citation.append(ans_meta)
+    
+    print('citation: ',citation)
     # identify themes in answers.
     themes = await identify_themes_in_responses(answers)
 
     return {
-        "qa_pairs" : [{"question": q, "answer": a} for q,a in zip(questions,answers)],
+        "qa_pairs" : [{"question": q, "answer": a, "citation": c} for q,a,c in zip(questions,answers,citation)],
         "themes" : themes
     }

@@ -1,3 +1,2 @@
 .env
-run.bat
-data
+__pycache__

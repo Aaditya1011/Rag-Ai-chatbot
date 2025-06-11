@@ -1,40 +1,80 @@
 from pathlib import Path
-from typing import List
+from typing import List, Tuple, Dict
 import httpx
 from app.config import together_api_key
-
-def load_extracted_text(doc_id:str) -> str:
-    """
-    Load the extracted text for a given document ID from the uploads folder.
-    """
-    # get the text path or raise error if not found.
-    try:
-        text_path =  f"data/extracted/{doc_id}.txt"
-
-        # return content as string.
-        with open(text_path, "r", encoding="utf-8") as f:
-            return f.read()
-
-    except Exception as e:
-        raise FileNotFoundError(f"Extracted text file for doc_id {doc_id} not found: {e}.")     
+from fastapi import HTTPException
+from app.services.text_extractor import extract_text
+   
     
+def load_extracted_text(doc_id:str):
 
-def split_text_into_chunks(text:str, chunk_size:int = 500, overlap:int = 50) -> List[str]:
+    UPLOAD_DIR = Path("data/uploads")
+    all_structured = []
+
+    # find the file using doc_id.
+    matched_files = list(UPLOAD_DIR.glob(f"{doc_id}.*"))
+
+    # file path.
+    file_path = matched_files[0]
+
+    # extract text.
+    try:
+        pages = extract_text(str(file_path))
+    except Exception as e:
+        raise HTTPException(status_code=500,detail=f"Text extraction failed for {doc_id}: {e}")
+
+    # meta_data like paragraph, lines.
+    for page in pages:
+
+        if not page["text"]:
+            continue
+
+        paragraphs = page["text"].split("\n\n")
+
+        for p_idx, para in enumerate(paragraphs,start=1):
+            lines = para.splitlines()
+            for l_idx, line in enumerate(lines, start=1):
+                all_structured.append({
+                    "doc_id" : doc_id,
+                    "page" : page["page_num"],
+                    "paragraph" : p_idx,
+                    "line" : l_idx,
+                    "text" : line.strip()
+                })
+
+    return {"extracted" : all_structured}
+
+
+def split_text_into_chunks_with_metadata(structured_data: List[Dict],chunk_size: int = 100,
+overlap: int = 10) -> Tuple[List[str], List[Dict]]:
     """
-    Split the text into overlapping chunks to prepare for embedding.
+    Splits structured text into overlapping chunks and returns both chunks and their metadata.
     """
 
-    words = text.split()
     chunks = []
+    metadata = []
     start = 0
+    texts = [item["text"] for item in structured_data]
 
-    while start < len(words):
+
+    while start < len(texts):
         end = start + chunk_size
-        chunk = " ".join(words[start:end])
-        chunks.append(chunk)
+        chunk_lines = structured_data[start:end]
+        chunk_text = " ".join(line["text"] for line in chunk_lines)
+        chunks.append(chunk_text)
+
+        meta = {
+            "doc_id": chunk_lines[0]["doc_id"],
+            "page_range": str([chunk_lines[0]["page"], chunk_lines[-1]["page"]]),
+            "paragraph_range": str([chunk_lines[0]["paragraph"], chunk_lines[-1]["paragraph"]]),
+            "line_range": str([chunk_lines[0]["line"], chunk_lines[-1]["line"]]),
+        }
+
+        metadata.append(meta)
+
         start += chunk_size - overlap
 
-    return chunks
+    return chunks, metadata
 
 async def get_embeddings_from_api(chunks:List[str]) -> List[List[float]]:
     """

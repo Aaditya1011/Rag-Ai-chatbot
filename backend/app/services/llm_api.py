@@ -19,6 +19,15 @@ async def get_answer_from_llm(query: str, top_k: int = 5) -> str:
     query_embeddings = await get_embeddings_from_api([query])
     similar_chunks = search_similar_chunks(query_embeddings[0],top_k)
     
+    citation = {}
+    for i in similar_chunks:
+        citation["doc_id"] = i["doc_id"]
+        citation["paragraph_range"] = i["paragraph_range"]
+        citation["page_range"] = i["page_range"]
+        citation["line_range"] = i["line_range"]
+
+
+
     # combine the matched chunks to from context for LLM.
     context = "\n\n".join([chunk["chunk"] for chunk in similar_chunks])
 
@@ -46,11 +55,12 @@ async def get_answer_from_llm(query: str, top_k: int = 5) -> str:
     }
 
     # LLM API call.
-    async with httpx.AsyncClient() as client:
+    timeout = httpx.Timeout(60.0)
+    async with httpx.AsyncClient(timeout=timeout) as client:
         response = await client.post(API_URL, json=payload, headers=headers)
 
     if response.status_code == 200:
-        return response.json()["choices"][0]["text"]
+        return response.json()["choices"][0]["message"]["content"],citation
     else:
         raise Exception(f"Error fetching answer from LLM API: {response.text}")
 
@@ -94,7 +104,7 @@ async def identify_themes_in_responses(responses: List[str]) -> Dict[str,List[st
         response = await client.post(API_URL, json=payload, headers=headers)
 
     if response.status_code == 200:
-        themes = response.json()["choices"][0]["text"]
+        themes = response.json()["choices"][0]["message"]["content"]
         return themes
     else:
         raise Exception(f"Error fetching themes from LLM API : {response.text}")
