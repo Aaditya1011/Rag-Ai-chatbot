@@ -1,5 +1,5 @@
 import httpx
-from typing import List, Dict 
+from typing import List, Dict, Tuple
 from app.services.vector_store import search_similar_chunks
 from app.services.embeddings import get_embeddings_from_api
 from app.config import together_api_key
@@ -10,7 +10,7 @@ API_KEY = together_api_key
 MODEL = "mistralai/Mixtral-8x7B-Instruct-v0.1"
 
 # get answer from the LLM.
-async def get_answer_from_llm(query: str, top_k: int = 5) -> str:
+async def get_answer_from_llm(query: str, top_k: int = 5) -> Tuple[str,List[Dict]]:
     """
     Get an answer for the query from the LLM using most relevant chunks.
     """
@@ -18,14 +18,17 @@ async def get_answer_from_llm(query: str, top_k: int = 5) -> str:
     # Get the query's embedding and similar chunks.
     query_embeddings = await get_embeddings_from_api([query])
     similar_chunks = search_similar_chunks(query_embeddings[0],top_k)
-    
-    citation = {}
-    for i in similar_chunks:
-        citation["doc_id"] = i["doc_id"]
-        citation["paragraph_range"] = i["paragraph_range"]
-        citation["page_range"] = i["page_range"]
-        citation["line_range"] = i["line_range"]
 
+    # metadata of chunks used to form context.
+    citation = []
+    for i in similar_chunks:
+        citation.append({
+            "chunk" : i.get("chunk"),
+            "doc_id": i.get("doc_id"),
+            "paragraph_range": i.get("paragraph_range"),
+            "page_range": i.get("page_range"),
+            "line_range": i.get("line_range"),
+        })
 
 
     # combine the matched chunks to from context for LLM.
@@ -60,7 +63,7 @@ async def get_answer_from_llm(query: str, top_k: int = 5) -> str:
         response = await client.post(API_URL, json=payload, headers=headers)
 
     if response.status_code == 200:
-        return response.json()["choices"][0]["message"]["content"],citation
+        return response.json()["choices"][0]["message"]["content"], citation
     else:
         raise Exception(f"Error fetching answer from LLM API: {response.text}")
 

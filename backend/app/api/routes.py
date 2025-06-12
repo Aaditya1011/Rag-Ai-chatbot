@@ -7,16 +7,9 @@ import uuid
 from app.services.text_extractor import extract_text
 from app.services.llm_api import get_answer_from_llm, identify_themes_in_responses
 from app.services.embeddings import load_extracted_text
-#from app.services.embeddings import split_text_into_chunks
+from app.services.embeddings import split_text_into_chunks_with_metadata
 from app.services.embeddings import get_embeddings_from_api
 from app.services.vector_store import store_chunks_with_embeddings
-
-from app.services.embeddings import split_text_into_chunks_with_metadata
-
-from chromadb import Client
-from chromadb.config import Settings
-
-# from fastapi.responses import JSONResponse
 
 # router initialisation.
 router = APIRouter()
@@ -178,11 +171,10 @@ async def ask_question(questions: List[str] = Body(...,embed=True), top_k: int =
         answers.append(ans)
         citation.append(ans_meta)
     
-    print('citation: ',citation)
     # identify themes in answers.
     themes = await identify_themes_in_responses(answers)
 
     return {
-        "qa_pairs" : [{"question": q, "answer": a, "citation": c} for q,a,c in zip(questions,answers,citation)],
+        "qa_pairs" : [{"question": q, "answer": a, "citation": c} for q, a, c in zip(questions,answers,citation)],
         "themes" : themes
     }

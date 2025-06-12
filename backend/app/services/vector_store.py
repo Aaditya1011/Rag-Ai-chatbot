@@ -42,10 +42,10 @@ def search_similar_chunks(query_embedding: List[float], top_k: int = 5,client=cl
     for doc,meta in zip(results["documents"][0],results["metadatas"][0]):
         matched_chunks.append({
             "chunk" : doc,
-            "doc_id" : meta["doc_id"],
-            "paragraph_range" : meta['paragraph_range'],
-            "page_range" : meta["page_range"],
-            "line_range" : meta["line_range"]
+            "doc_id" : meta.get("doc_id"),
+            "paragraph_range" : meta.get('paragraph_range'),
+            "page_range" : meta.get("page_range"),
+            "line_range" : meta.get("line_range")
         })
 
     return matched_chunks
