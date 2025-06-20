@@ -1,6 +1,5 @@
 # frontend.
 streamlit 
-python-multipart
 
 # LLM api client.
 requests
