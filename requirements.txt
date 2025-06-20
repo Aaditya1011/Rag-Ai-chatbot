@@ -16,10 +16,3 @@ chromadb
 # backend.
 fastapi
 uvicorn
-
-# frontend.
-streamlit 
-
-# LLM api client.
-openai
-requests

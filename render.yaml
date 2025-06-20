@@ -1,0 +1,24 @@
+services:
+  - type: web
+    name: rag-chatbot-backend
+    env: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn app.main:app --host=0.0.0.0 --port=10000
+    envVars:
+      - key: TOGETHER_API_KEY
+    plan: free
+    autoDeploy: true
+    rootDir: backend
+
+  - type: web
+    name: rag-chatbot-frontend
+    env: python
+    buildCommand: pip install -r frontend-requirements.txt
+    startCommand: streamlit run app.py --server.port=10000 --server.enableCORS false
+    envVars:
+      - key: BACKEND_API_URL
+        value: https://rag-chatbot-backend.onrender.com
+    plan: free
+    autoDeploy: true
+    rootDir: streamlit_app
+
