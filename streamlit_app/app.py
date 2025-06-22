@@ -1,14 +1,19 @@
 import streamlit as st
 import pandas as pd
 import requests
-from backend.app.config import BACKEND_API_URL
+import os
+
+ENV = os.getenv("ENV","local")
+
+if ENV == "render":
+    FASTAPI_URL = "https://rag-chatbot-backend-nh16.onrender.com"
+else:
+    FASTAPI_URL = "http://localhost:8000"
 
 if "doc_id" not in st.session_state:
     st.session_state["doc_id"] = None
 if "uploaded" not in st.session_state:
     st.session_state["uploaded"] = None
-
-FASTAPI_URL = BACKEND_API_URL
 
 st.title("RAG Chatbot")
 

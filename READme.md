@@ -105,6 +105,7 @@ streamlit run app.py
 rag-chatbot/
 │
 ├── backend/
+│   ├── __init__.py
 │   ├── app/
 │   │   ├── api/                # FastAPI routes
 │   │   ├── services/           # Embedding, OCR, Chunking, Retrieval
@@ -113,12 +114,12 @@ rag-chatbot/
 │   │   ├── chroma/ 
 │   │   ├── extracted/
 │   │   ├── uploads/
+|   ├── requirements.txt
 │   └── .env
 ├── streamlit_app/              # Streamlit UI.
-│   └── app/
+│   ├── app/
+│   └── frontend-requirements.txt
 ├── documents/                  # Documentation.
-├── requirements.txt
-├── frontend-requirements.txt
 ├── render.yaml                 # Render File.
 └── README.md                   # This File.
 ```
