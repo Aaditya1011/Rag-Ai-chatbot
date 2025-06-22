@@ -1,13 +1,14 @@
 import streamlit as st
 import pandas as pd
 import requests
+from backend.app.config import BACKEND_API_URL
 
 if "doc_id" not in st.session_state:
     st.session_state["doc_id"] = None
 if "uploaded" not in st.session_state:
     st.session_state["uploaded"] = None
 
-FASTAPI_URL = 'http://127.0.0.1:8000'
+FASTAPI_URL = BACKEND_API_URL
 
 st.title("RAG Chatbot")
 
