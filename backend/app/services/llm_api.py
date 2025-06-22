@@ -2,11 +2,11 @@ import httpx
 from typing import List, Dict, Tuple
 from app.services.vector_store import search_similar_chunks
 from app.services.embeddings import get_embeddings_from_api
-from app.config import together_api_key
+from app.config import TOGETHER_API_KEY
 
 # LLM API URL and KEY.
 API_URL = "https://api.together.xyz/v1/chat/completions"
-API_KEY = together_api_key
+API_KEY = TOGETHER_API_KEY
 MODEL = "mistralai/Mixtral-8x7B-Instruct-v0.1"
 
 # get answer from the LLM.

@@ -1,7 +1,7 @@
 from pathlib import Path
 from typing import List, Tuple, Dict
 import httpx
-from app.config import together_api_key
+from app.config import TOGETHER_API_KEY
 from fastapi import HTTPException
 from app.services.text_extractor import extract_text
    
@@ -83,7 +83,7 @@ async def get_embeddings_from_api(chunks:List[str]) -> List[List[float]]:
 
     # api url and key.
     API_URL = "https://api.together.xyz/v1/embeddings"
-    API_KEY = together_api_key
+    API_KEY = TOGETHER_API_KEY
     MODEL = "togethercomputer/m2-bert-80M-8k-retrieval"
 
     # headers for api call.
