@@ -11,12 +11,11 @@ services:
   - type: web
     name: rag-chatbot-frontend
     env: python
-    buildCommand: pip install -r frontend-requirements.txt
-    startCommand: streamlit run app.py --server.port=10000 --server.enableCORS false
+    buildCommand: pip install -r streamlit_app/frontend-requirements.txt
+    startCommand: streamlit run streamlit_app/app.py --server.port=10000 --server.enableCORS false
     envVars:
       - key: BACKEND_API_URL
         value: https://rag-chatbot-backend.onrender.com
     plan: free
     autoDeploy: true
-    rootDir: streamlit_app
 

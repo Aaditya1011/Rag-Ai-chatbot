@@ -75,24 +75,33 @@ A **Retrieval-Augmented Generation (RAG)** based AI chatbot that can understand 
 ## 🚀 Getting Started
 
 ### 1. Clone the Repository
-git clone https://github.com/yourusername/rag-ai-chatbot.git
+```bash
+git clone https://github.com/Aaditya1011/rag-ai-chatbot.git
 cd rag-ai-chatbot
+```
 
 ### 2. Create Virtual Envirnoment.
+```bash
 python -m venv venv
 source venv/bin/activate  # Windows: venv\Scripts\activate
 pip install -r requirements.txt
 pip install -r frontend-requirements.txt
+```
 
 ### 2. Start Backend (FastAPI).
+```bash
 cd backend
 uvicorn app.main:app --reload
+```
 
 ### 3. Start Frontend (Streamlit).
+```bash
 cd frontend
 streamlit run app.py
+```
 
 ### 3. Folder Structure.
+```bash
 rag-chatbot/
 │
 ├── backend/
@@ -112,6 +121,7 @@ rag-chatbot/
 ├── frontend-requirements.txt
 ├── render.yaml                 # Render File.
 └── README.md                   # This File.
+```
 
 
 📌 Future Improvements
