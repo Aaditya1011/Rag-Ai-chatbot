@@ -31,8 +31,20 @@ if uploaded_files and not st.session_state["uploaded"]:
 
             res = requests.post(f"{FASTAPI_URL}/upload/",files=files)
             doc_ids = []
-            for i in res.json().get("files",[]):
-                doc_ids.append(i["doc_id"])
+
+            if res.status_code == 200:
+
+                try:
+                    upload_data = res.json()
+                except Exception as e:
+                    st.write(e)
+                    st.write(res.text)
+
+                for i in res.json().get("files",[]):
+                    doc_ids.append(i["doc_id"])
+            
+            else:
+                st.write(res.status_code)
             
             st.success(f"Files Uploaded.")
 
